@@ -20,27 +20,50 @@ function App() {
   }
 
   return (
-    <div className="flex justify-center items-center h-screen">
-      <div className="bg-white flex flex-col justify-center items-center border border-gray-300 p-8 rounded-lg shadow-lg">
-        <h1 className="text-2xl font-bold mb-4">Crypto Price Checker</h1>
-        <div className="mb-4">
-          <ConnectButton profileModal={true} showBalance={false}>
-            Connect Wallet
-          </ConnectButton>
+    <div className="flex flex-col min-h-screen bg-black">
+      <div className="flex flex-col justify-center items-center flex-1">
+        <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-8">
+          Getting Price Feed using{" "}
+          <span className="text-yellow-500">0rbit</span> on{" "}
+          <span className="text-yellow-500">AO</span>
+        </h1>
+
+        <div className="bg-black rounded-lg shadow-lg p-8 w-full max-w-md lg:max-w-lg border-white/40 border-2">
+          <div className="mb-6">
+            <ConnectButton
+              accent="white"
+              profileModal={true}
+              showBalance={false}
+              className="text-black"
+            >
+              Connect Wallet
+            </ConnectButton>
+          </div>
+          <div className="mb-6">
+            <button
+              onClick={() => setPrice()}
+              className="bg-white hover:bg-zinc-300 text-black font-bold py-3 px-6 rounded-lg focus:outline-none focus:shadow-outline w-full"
+              disabled={loading}
+            >
+              {loading ? "Fetching Price..." : "Get Price"}
+            </button>
+          </div>
+          {currentPrice && (
+            <div className="bg-[#0F0F0F] text-white rounded-lg shadow-lg p-4 md:p-6 lg:p-8">
+              <h2 className="text-xl md:text-2xl font-bold mb-4">
+                Current Bitcoin Price
+              </h2>
+              <div className="text-lg md:text-xl">
+                <span className="text-yellow-400">$</span>
+                {currentPrice}
+              </div>
+            </div>
+          )}
         </div>
-        <div className="mb-4">
-          <button
-            onClick={() => setPrice()}
-            className="bg-black hover:bg-gray-900 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-            disabled={loading}
-          >
-            {loading ? "Fetching Price..." : "Get Price"}
-          </button>
-        </div>
-        {currentPrice && (
-          <div className="text-lg">Current Bitcoin Price: {currentPrice}</div>
-        )}
       </div>
+      <footer className="text-center text-gray-500 text-sm py-4">
+        Made with 💛 by 0rbit
+      </footer>
     </div>
   );
 }
