@@ -60,6 +60,26 @@ function App() {
             </div>
           )}
         </div>
+        <div className="flex flex-col justify-start">
+          <h2 className="text-white pt-10">Useful Links:</h2>
+          <div className="text-white flex flex-col gap-4 pt-4">
+            <a href="https://docs.0rbit.co/" className="text-yellow-500">
+              Documentation
+            </a>
+            <a
+              href="https://github.com/0rbit-co/price-feed-tutorial"
+              className="text-yellow-500"
+            >
+              GitHub Repository
+            </a>
+            <a href="https://mirror.xyz/" className="text-yellow-500">
+              Frontend Blog
+            </a>
+            <a href="https://mirror.xyz/" className="text-yellow-500">
+              Contract Blog
+            </a>
+          </div>
+        </div>
       </div>
       <footer className="text-center text-gray-500 text-sm py-4">
         Made with 💛 by 0rbit
