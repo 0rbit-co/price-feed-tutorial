@@ -28,7 +28,7 @@ function App() {
           <span className="text-yellow-500">AO</span>
         </h1>
 
-        <div className="bg-white rounded-lg shadow-lg p-8 w-full max-w-md lg:max-w-lg border-white/40 border-2">
+        <div className="bg-white border rounded-lg shadow-lg p-8 w-full max-w-md lg:max-w-lg">
           <div className="mb-6">
             <ConnectButton
               // accent="white"
@@ -73,17 +73,24 @@ function App() {
               GitHub Repository
             </a>
             <a href="https://mirror.xyz/" className="text-yellow-500">
-              Frontend Blog
+              Price Feed Frontend Blog
             </a>
             <a href="https://mirror.xyz/" className="text-yellow-500">
-              Contract Blog
+              Price Feed Contract Blog
             </a>
           </div>
         </div>
+        <footer className="text-center text-gray-500 text-sm py-20">
+          Made by{" "}
+          <a href="https://twitter.com/0xSarthak13" className="text-yellow-500">
+            Sarthak
+          </a>{" "}
+          using{" "}
+          <a href="https://0rbit.co/" className="text-yellow-500">
+            0rbit
+          </a>
+        </footer>
       </div>
-      <footer className="text-center text-gray-500 text-sm py-4">
-        Made with 💛 by 0rbit
-      </footer>
     </div>
   );
 }
