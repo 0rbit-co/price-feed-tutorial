@@ -60,9 +60,10 @@ function App() {
             </div>
           )}
         </div>
-        <div className="flex flex-col justify-start">
+        <div className="pt-8"></div>
+        <div className="flex flex-col justify-start border-white/40 border-2 p-8 bg-[#0F0F0F] rounded-lg">
           <h2 className="text-white pt-10">Useful Links:</h2>
-          <div className="text-white flex flex-col gap-4 pt-4">
+          <div className="text-white grid grid-cols-2 gap-4 pt-4">
             <a href="https://docs.0rbit.co/" className="text-yellow-500">
               Documentation
             </a>
