@@ -27,7 +27,11 @@ TOKEN_PRICES = TOKEN_PRICES or {
         last_update_timestamp = 0
     }
 }
-
+ID_TOKEN = ID_TOKEN or {
+    bitcoin = "BTC",
+    ethereum = "ETH",
+    solana = "SOL"
+}
 --[[
     Mapping to store requested token to add to price feed.
 ]]
@@ -54,6 +58,7 @@ Handlers.add(
             if not TOKEN_PRICES[token] then
                 TOKEN_PRICES[token].price = 0
                 TOKEN_PRICES[token].coingecko_id = coingecko_id
+                ID_TOKEN[coingecko_id] = token
                 ao.send({
                     Target = msg.From,
                     Tags = {
@@ -220,7 +225,7 @@ Handlers.add(
     function(msg)
         local res = json.decode(msg.Data)
         for k, v in pairs(res) do
-            TOKEN_PRICES[k].price = v
+            TOKEN_PRICES[ID_TOKEN[k]].price = v.usd
             TOKEN_PRICES[k].last_update_timestamp = msg.Timestamp
         end
     end
