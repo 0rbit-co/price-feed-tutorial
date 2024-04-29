@@ -2,18 +2,19 @@ local json = require("json")
 
 -- processId of the 0rbit process.
 _0RBIT = "WSXUI2JjYUldJ7CKq9wE1MGwXs-ldzlUlHOQszwQe0s"
+_0RBT_TOKEN = "BUhZLMwQ6yZHguLtJYA5lLUa9LQzLXMXRfaq9FVcPJc"
 
 -- Base URL for coingecko API
 BASE_URL = "https://api.coingecko.com/api/v3/simple/price"
-
+FEE_AMOUNT = "1000000000000" -- 1 $0RBT
 
 --[[
-    Mapping to store the token prices with their coingecko id
+    Mapping to store the Token Details
 ]]
 TOKEN_PRICES = TOKEN_PRICES or {
     BTC = {
         coingecko_id = "bitcoin",
-        price = 500,
+        price = 0,
         last_update_timestamp = 0
     },
     ETH = {
@@ -32,201 +33,79 @@ ID_TOKEN = ID_TOKEN or {
     ethereum = "ETH",
     solana = "SOL"
 }
+
 --[[
-    Mapping to store requested token to add to price feed.
+    Function to get the price of a token
 ]]
-REQUESTED_TOKENS = REQUESTED_TOKENS or {}
+function getTokenPrice(msg)
+    local token = msg.Tags.Token
+    local price = TOKEN_PRICES[token].price
+    if price == 0 then
+        Handlers.utils.reply("Price not available!!!")(msg)
+    else
+        Handlers.utils.reply(tostring(price))(msg)
+    end
+end
 
 --[[
-
+    Function to create a GET request on 0rbit to fetch the token prices
 ]]
-LOGS = LOGS or {}
+function fetchPrice()
+    local url;
+    local token_ids = "";
+
+    for _, v in pairs(TOKEN_PRICES) do
+        token_ids = token_ids .. v.coingecko_id .. ","
+    end
+
+    url = BASE_URL .. "?ids=" .. token_ids .. "&vs_currencies=usd"
+
+    Send({
+        Target = _0RBT_TOKEN,
+        Action = "Transfer",
+        Recipient = _0RBIT,
+        Quantity = FEE_AMOUNT,
+        ["X-Url"] = url,
+        ["X-Action"] = "Get-Real-Data"
+    })
+    print(Colors.green .. "GET Request sent to the 0rbit process.")
+end
 
 --[[
-    This function is used to add a new token to the TOKEN_PRICES table
-    @param {string} token - The token to add
-    @notice Only the process owner can add tokens
+    Function to update the token prices in the TOKEN_PRICES table
+]]
+function receiveData(msg)
+    local res = json.decode(msg.Data)
+    for k, v in pairs(res) do
+        TOKEN_PRICES[ID_TOKEN[k]].price = tonumber(v.usd)
+        TOKEN_PRICES[ID_TOKEN[k]].last_update_timestamp = msg.Timestamp
+    end
+end
+
+--[[
+    Handler to get the token price from the TOKEN_PRICES table
 ]]
 Handlers.add(
-    "AddToken",
-    Handlers.utils.hasMatchingTag("Action", "Add-Token"),
-    function(msg)
-        if msg.From == ao.id then
-            local token = msg.Tags.Token
-            local coingecko_id = msg.Tags.CoingeckoId
-
-            if not TOKEN_PRICES[token] then
-                TOKEN_PRICES[token].price = 0
-                TOKEN_PRICES[token].coingecko_id = coingecko_id
-                ID_TOKEN[coingecko_id] = token
-                ao.send({
-                    Target = msg.From,
-                    Tags = {
-                        ['Message-Id'] = msg.Id,
-                        Token = token
-                    }
-                })
-            else
-                ao.send({
-                    Target = msg.From,
-                    Tags = {
-                        ['Message-Id'] = msg.Id,
-                        Error = 'Token already exists'
-                    }
-                })
-            end
-
-            -- For Debugging
-            table.insert(
-                LOGS,
-                {
-                    From = msg.From,
-                    Tag = "Add-Token",
-                    Data = {
-                        Token = token,
-                        Message = "Success"
-                    }
-                }
-            )
-        else
-            ao.send({
-                Target = msg.From,
-                Tags = {
-                    Action = 'Add Token Error',
-                    ['Message-Id'] = msg.Id,
-                    Error = 'Only the Process Owner can add tokens'
-                }
-            })
-
-            -- For Debugging
-            table.insert(
-                LOGS,
-                {
-                    From = msg.From,
-                    Tag = "Add-Token",
-                    Data = {
-                        Message = "Not Owner"
-                    }
-                }
-            )
-        end
-    end
-)
-
---[[
-    Function to request token addition in the price-feed
-]]
-Handlers.add(
-    "RequestAddToken",
-    Handlers.utils.hasMatchingTag("Action", "Request-Add-Token"),
-    function(msg)
-        local token = msg.Tags.Token
-        local chain_id = msg.Tags.ChainId
-
-        assert(type(token) == "string", "Token Name for token addition is required")
-        assert(type(chain_id) == "string", "Chain Id for token addition is required")
-
-        REQUESTED_TOKENS[token] = chain_id
-
-        ao.send {
-            Target = msg.From,
-            Tags = {
-                Action = 'Token Addition Request'
-            },
-            Data = "Your token request addition submitted!"
-        }
-        table.insert(
-            LOGS,
-            {
-                From = msg.From,
-                Tag = "Request-Add-Token",
-                Data = {
-                    Token = token,
-                    ChainId = chain_id,
-                    Message = "Success"
-                }
-            }
-        )
-    end
-)
-
---[[
-    This function is used to get the BTC price from the TOKEN_PRICES table
-]]
-Handlers.add(
-    "GetPrice",
-    Handlers.utils.hasMatchingTag("Action", "Get-Price"),
-    function(msg)
-        print(msg.From)
-        local token = msg.Tags.Token
-        local price = TOKEN_PRICES[token].price
-        if price == 0 then
-            Handlers.utils.reply("Price not available!!!")(msg)
-            -- ao.send({
-            --     Target = msg.From,
-            --     Tags = {
-            --         ['Message-Id'] = msg.Id,
-            --         Error = 'Price not available! Please contact @0rbitco on X'
-            --     }
-            -- })
-            -- return
-        else
-            Handlers.utils.reply(tostring(price))(msg)
-            -- ao.send({
-            --     Target = msg.From,
-            --     Tags = {
-            --         ['Message-Id'] = msg.Id,
-            --         Price = tostring(price)
-            --     }
-            -- })
-        end
-        table.insert(
-            LOGS,
-            {
-                From = msg.From,
-                Tag = "Request-Add-Token",
-                Data = {
-                    Token = token,
-                    Message = "Success"
-                }
-            }
-        )
-    end
+    "GetTokenPrice",
+    Handlers.utils.hasMatchingTag("Action", "Get-Token-Price"),
+    getTokenPrice
 )
 
 
 --[[
-    CRON FUNCTIONS TO UPDATE THE TOKEN PRICES
+    CRON Handler to fetch the token prices using 0rbit in a defined interval.
 ]]
 Handlers.add(
     "CronTick",
     Handlers.utils.hasMatchingTag("Action", "Cron"),
-    function()
-        local url;
-        local token_ids;
-
-        for _, v in pairs(TOKEN_PRICES) do
-            token_ids = token_ids .. v.coingecko_id .. ","
-        end
-
-        url = BASE_URL .. "?ids=" .. token_ids .. "&vs_currencies=usd"
-
-        ao.send({
-            Target = _0RBIT,
-            Action = "Get-Real-Data",
-            Url = url
-        })
-    end
+    fetchPrice
 )
 
+--[[
+    Handler to receive the data from the 0rbit process
+]]
 Handlers.add(
     "ReceivingData",
-    Handlers.utils.hasMatchingTag("Action", "Receive-data-feed"),
-    function(msg)
-        local res = json.decode(msg.Data)
-        for k, v in pairs(res) do
-            TOKEN_PRICES[ID_TOKEN[k]].price = v.usd
-            TOKEN_PRICES[k].last_update_timestamp = msg.Timestamp
-        end
-    end
+    Handlers.utils.hasMatchingTag("Action", "Receive-Data-Feed"),
+    receiveData
 )
